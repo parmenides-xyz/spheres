@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+usdc=0x3600000000000000000000000000000000000000
+outbox=0x1c00000000000000000000000000000000000002
+
+wallet_address() {
+    cast wallet address --private-key "${PRIVATE_KEY:?set PRIVATE_KEY}"
+}
+
+send() {
+    local rpc_url=$1
+    shift
+    cast send "$@" --rpc-url "$rpc_url" --private-key "${PRIVATE_KEY:?set PRIVATE_KEY}"
+}
+
+approve() {
+    send "$1" "$usdc" 'approve(address,uint256)' "$2" "$(cast max-uint)"
+}
+
+auth_token() {
+    local chain_id now fields domain digest signature
+    chain_id=$(cast chain-id --rpc-url "${SPHERE_RPC_URL:?set SPHERE_RPC_URL}")
+    now=$(date +%s)
+    fields=$(cast abi-encode --packed 'f(uint8,uint32,uint64,uint64,uint64)' \
+        0 "$((chain_id & 0xffffffff))" "$chain_id" "$now" "$((now + 600))")
+    domain=$(cast format-bytes32-string ArcSphereRPC)
+    digest=$(cast keccak "${domain}${fields#0x}")
+    signature=$(cast wallet sign --no-hash --private-key "${PRIVATE_KEY:?set PRIVATE_KEY}" "$digest")
+    printf '%s%s\n' "$signature" "${fields#0x}"
+}
+
+case "${1:-}" in
+    max-approve-portal)
+        approve "${L1_RPC_URL:?set L1_RPC_URL}" "${L1_PORTAL_ADDRESS:?set L1_PORTAL_ADDRESS}"
+        ;;
+    max-approve-outbox)
+        approve "${SPHERE_RPC_URL:?set SPHERE_RPC_URL}" "$outbox"
+        ;;
+    withdraw)
+        amount=${2:?usage: sphere withdraw AMOUNT ARC_RECIPIENT}
+        recipient=${3:?usage: sphere withdraw AMOUNT ARC_RECIPIENT}
+        wallet=$(wallet_address)
+        send "${SPHERE_RPC_URL:?set SPHERE_RPC_URL}" "$outbox" \
+            'requestWithdrawal(address,address,uint128,bytes32,uint64,address,bytes,bytes)' \
+            "$usdc" "$recipient" "$amount" "$(cast to-bytes32 0)" 0 "$wallet" 0x 0x
+        ;;
+    balance)
+        wallet=$(wallet_address)
+        token=$(auth_token)
+        cast call "$usdc" 'balanceOf(address)(uint256)' "$wallet" --from "$wallet" \
+            --rpc-url "${REDACTED_RPC_URL:?set REDACTED_RPC_URL}" --rpc-headers "X-Authorization-Token: $token"
+        ;;
+    *)
+        echo 'Usage: sphere {max-approve-portal|max-approve-outbox|withdraw AMOUNT ARC_RECIPIENT|balance}' >&2
+        exit 2
+        ;;
+esac
