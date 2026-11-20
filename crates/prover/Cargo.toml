@@ -1,0 +1,30 @@
+[package]
+name = "sphere-prover"
+description = "Prover protocol components for Arc Spheres"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+arc-execution-config.workspace = true
+keccak-const = "0.2.0"
+thiserror.workspace = true
+sphere-spf = { path = "../spf" }
+alloy-primitives.workspace = true
+futures.workspace = true
+serde = { workspace = true, features = ["derive"] }
+tokio = { workspace = true, features = ["rt", "io-util", "macros"] }
+tokio-util = { workspace = true, features = ["codec"] }
+minicbor = { version = "=2.3.0", default-features = false, features = ["alloc"] }
+minicbor-serde = { version = "=0.7.1", default-features = false, features = ["alloc"] }
+
+[dev-dependencies]
+alloy-rlp.workspace = true
+alloy-consensus.workspace = true
+reth-trie-common.workspace = true
+serde_json.workspace = true

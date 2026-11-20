@@ -1,0 +1,124 @@
+[workspace.package]
+version = "0.3.5"
+edition = "2024"
+rust-version = "1.95.0"
+license = "MIT OR Apache-2.0"
+publish = false
+
+[workspace]
+exclude = ["third_party/arc-evm"]
+members = ["crates/checker", "crates/chainspec", "crates/contracts", "crates/l1", "crates/primitives", "crates/precompiles", "crates/p2p", "crates/node", "crates/evm", "crates/payload", "crates/sequencer", "crates/rpc", "crates/prover", "crates/spf", "crates/exithatch", "bin/prover/vsock-proxy", "bin/arc-sphere", "xtask", "third_party/reth-exex"]
+resolver = "3"
+
+[workspace.lints]
+[workspace.lints.clippy]
+dbg_macro = "warn"
+manual_string_new = "warn"
+uninlined_format_args = "warn"
+use_self = "warn"
+redundant_clone = "warn"
+default_constructed_unit_structs = "allow"
+
+[workspace.lints.rust]
+rust_2018_idioms = "warn"
+unreachable_pub = "warn"
+unused_must_use = "warn"
+redundant_lifetimes = "warn"
+unnameable_types = "warn"
+
+[workspace.lints.rustdoc]
+all = "warn"
+
+[workspace.dependencies]
+arc-execution-config = { git = "https://github.com/circlefin/arc-node.git", rev = "6e764023ee6515fe70573e123ed2db912a7207b4" }
+arc-execution-payload = { git = "https://github.com/circlefin/arc-node.git", rev = "6e764023ee6515fe70573e123ed2db912a7207b4" }
+arc-execution-txpool = { git = "https://github.com/circlefin/arc-node.git", rev = "6e764023ee6515fe70573e123ed2db912a7207b4" }
+arc-execution-validation = { git = "https://github.com/circlefin/arc-node.git", rev = "6e764023ee6515fe70573e123ed2db912a7207b4" }
+arc-precompiles = { git = "https://github.com/circlefin/arc-node.git", rev = "6e764023ee6515fe70573e123ed2db912a7207b4" }
+alloy-eips = { version = "2.0.4", default-features = false }
+alloy-evm = { version = "0.34.0", default-features = false }
+alloy-genesis = { version = "2.0.4", default-features = false }
+alloy-primitives = { version = "1.5.6", default-features = false, features = ["map-foldhash", "keccak-cache-global", "asm-keccak"] }
+reth-chainspec = { git = "https://github.com/paradigmxyz/reth", tag = "v2.2.0", default-features = false }
+reth-cli = { git = "https://github.com/paradigmxyz/reth", tag = "v2.2.0" }
+reth-ethereum-primitives = { git = "https://github.com/paradigmxyz/reth", tag = "v2.2.0", default-features = false }
+reth-network-peers = { git = "https://github.com/paradigmxyz/reth", tag = "v2.2.0", default-features = false }
+reth-primitives-traits = { version = "0.3.1", default-features = false }
+serde_json = { version = "1.0", default-features = false, features = ["alloc"] }
+eyre = "0.6"
+alloy-consensus = { version = "2.0.4", default-features = false }
+alloy-rpc-types-eth = { version = "2.0.4", default-features = false }
+alloy-signer-local = { version = "2.0.4", default-features = false, features = ["mnemonic"] }
+clap = "4"
+commonware-actor = "=2026.9.0"
+commonware-codec = "=2026.9.0"
+commonware-cryptography = "=2026.9.0"
+commonware-p2p = "=2026.9.0"
+commonware-runtime = "=2026.9.0"
+commonware-utils = "=2026.9.0"
+const-hex = { version = "1.15.0" }
+derive_more = { version = "2.0.0" }
+libc = "0.2.186"
+metrics = "0.24.0"
+parking_lot = "0.12"
+serde = { version = "1.0", default-features = false }
+thiserror = { version = "2.0.0", default-features = false }
+tokio = { version = "1.45.1", features = ["full"] }
+tokio-util = { version = "0.7.4", features = ["codec"] }
+tokio-vsock = "0.7.2"
+toml = "0.8"
+tracing = { version = "0.1.0", default-features = false }
+tracing-subscriber = { version = "0.3", default-features = false, features = ["ansi"] }
+vsock = "0.5.4"
+alloy-network = { version = "2.0.4", default-features = false }
+alloy-provider = { version = "2.0.4", features = ["reqwest"], default-features = false }
+alloy-rpc-types-debug = "2.0.4"
+alloy-signer = { version = "2.0.4", default-features = false }
+axum = "0.8"
+jsonrpsee = { version = "0.26.0", features = ["server", "macros"] }
+futures = "0.3"
+reqwest = { version = "0.13", default-features = false, features = [
+  "json",
+  "rustls",
+] }
+reth-metrics = { git = "https://github.com/paradigmxyz/reth", tag = "v2.2.0" }
+sphere-primitives = { path = "crates/primitives", default-features = false }
+reth-trie-common = { git = "https://github.com/paradigmxyz/reth", tag = "v2.2.0", default-features = false, features = [
+  "std",
+] }
+reth-trie-sparse = { git = "https://github.com/paradigmxyz/reth", tag = "v2.2.0", default-features = false, features = [
+  "std",
+] }
+alloy-rlp = { version = "0.3.13", default-features = false, features = ["core-net"] }
+commonware-math = "=2026.9.0"
+tempfile = "3.20"
+sphere-p2p = { path = "crates/p2p" }
+vergen = { version = "10.0.1", features = ["build", "cargo", "emit_and_set"] }
+vergen-git2 = "10.0.1"
+reth-rpc-api = { git = "https://github.com/paradigmxyz/reth", tag = "v2.2.0" }
+reth-node-core = { git = "https://github.com/paradigmxyz/reth", tag = "v2.2.0" }
+serde_yaml = "0.9.34"
+zeroize = "1.9.0"
+alloy-contract = { version = "2.0.4", default-features = false }
+alloy-rpc-client = { version = "2.0.4", default-features = false, features = ["reqwest"] }
+alloy-sol-types = { version = "1.7.3", default-features = false }
+alloy-transport = { version = "2.0.4", default-features = false }
+antithesis_sdk = { version = "0.3.0", default-features = false }
+bincode = "1.3.3"
+bytes = { version = "1.5", default-features = false }
+reth-codecs = { version = "0.3.1" }
+reth-db = { git = "https://github.com/paradigmxyz/reth", tag = "v2.2.0", default-features = false }
+reth-exex = { git = "https://github.com/paradigmxyz/reth", tag = "v2.2.0" }
+reth-node-api = { git = "https://github.com/paradigmxyz/reth", tag = "v2.2.0" }
+reth-provider = { git = "https://github.com/paradigmxyz/reth", tag = "v2.2.0" }
+reth-storage-api = { git = "https://github.com/paradigmxyz/reth", tag = "v2.2.0", default-features = false }
+test-case = "3"
+reth-evm = { git = "https://github.com/paradigmxyz/reth", tag = "v2.2.0", default-features = false }
+reth-revm = { git = "https://github.com/paradigmxyz/reth", tag = "v2.2.0", default-features = false }
+
+[patch."https://github.com/paradigmxyz/reth"]
+reth-exex = { path = "third_party/reth-exex" }
+
+[patch.crates-io]
+revm-inspectors = { path = "third_party/revm-inspectors" }
+alloy-evm = { path = "third_party/alloy-evm" }

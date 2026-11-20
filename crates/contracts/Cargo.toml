@@ -1,0 +1,39 @@
+[package]
+name = "sphere-contracts"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[dependencies]
+alloy-primitives = { version = "1.5.6", default-features = false }
+alloy-sol-types = { version = "1.5.6", default-features = false, features = ["json"] }
+alloy-contract = { version = "2.0.4", optional = true }
+alloy-network = { version = "2.0.4", optional = true }
+alloy-provider = { version = "2.0.4", optional = true }
+alloy-rpc-types-eth = { version = "2.0.4", optional = true }
+alloy-transport = { version = "2.0.4", optional = true }
+k256 = { version = "0.13", optional = true }
+serde = { version = "1.0", optional = true, features = ["derive"] }
+tokio = { version = "1.44.2", optional = true, features = ["rt-multi-thread", "macros"] }
+
+[dev-dependencies]
+const-hex = "1"
+
+[features]
+default = ["std", "serde", "rpc"]
+std = [
+    "alloy-primitives/std",
+    "alloy-sol-types/std",
+    "serde?/std",
+]
+serde = ["dep:serde", "alloy-primitives/serde"]
+rpc = [
+    "alloy-primitives/k256",
+    "dep:alloy-contract",
+    "dep:alloy-network",
+    "dep:alloy-provider",
+    "dep:alloy-rpc-types-eth",
+    "dep:alloy-transport",
+    "dep:k256",
+    "dep:tokio",
+]

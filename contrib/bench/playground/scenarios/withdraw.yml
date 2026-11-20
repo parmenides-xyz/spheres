@@ -1,0 +1,161 @@
+version: 1
+
+include:
+  - ../../neobank/neobank-scenario-fragments.yml
+
+chains:
+  l1:
+    network: sphere
+    rpc_url: "${L1_RPC_URL}"
+    query_rpc_url: "${SPHERES_BENCH_L1_QUERY_RPC_URL}"
+    observation:
+      mode: auto
+      websocket_url: "${L1_WS_RPC_URL}"
+      poll_interval: 50ms
+    chain_id: ${SPHERES_BENCH_EXPECTED_L1_CHAIN_ID}
+    workload: ../../neobank/l1-onramp.yml
+
+  sphere:
+    network: sphere
+    rpc_url: "${SPHERE_REDACTED_RPC_URL}"
+    query_rpc_url: "${SPHERE_RPC_URL}"
+    observation:
+      mode: auto
+      websocket_url: "${SPHERE_WS_RPC_URL}"
+      poll_interval: 50ms
+    request_auth:
+      sender_header:
+        name: X-Authorization-Token
+        map: "${SPHERES_BENCH_SPHERE_AUTH_MAP}"
+        reload_interval: 1s
+    chain_id: ${SPHERES_BENCH_EXPECTED_SPHERE_CHAIN_ID}
+    workload: ../../neobank/sphere-flow.yml
+
+scenario:
+  name: withdraw
+  execution: dag
+  timeout: 10m
+
+  bindings:
+    account:
+      account: { pool: users, select: lease }
+    offramp_action_id:
+      bytes32: { random_bytes: 32 }
+
+  steps:
+    - id: sphere_before
+      checkpoint: { chain: sphere }
+      save: sphere_before
+
+    - id: approve_base_token
+      depends_on: [sphere_before]
+      submit:
+        chain: sphere
+        template: approve_base_token
+        with:
+          from: { var: account.ref }
+        await: receipt
+      save: base_token_approval
+
+    - id: l1_before_offramp
+      depends_on: [approve_base_token]
+      checkpoint: { chain: l1 }
+      save: l1_before_offramp
+
+    - id: offramp
+      depends_on: [l1_before_offramp, approve_base_token]
+      submit:
+        chain: sphere
+        template: offramp
+        with:
+          from: { var: account.ref }
+          call:
+            args:
+              - "${SPHERES_BENCH_TOKEN}"
+              - "${SPHERES_BENCH_RECIPIENT}"
+              - ${SPHERES_BENCH_WITHDRAWAL_AMOUNT}
+              - { var: offramp_action_id }
+              - 0
+              - { var: account.address }
+              - "0x"
+              - "0x"
+      save: offramp
+
+    - id: offramp_result
+      depends_on: [sphere_before, offramp]
+      wait_log:
+        chain: sphere
+        from_block: { var: sphere_before.block_number }
+        transaction_hash: { var: offramp.tx_hash }
+        sender: { var: offramp.sender }
+        address: "${SPHERES_BENCH_OUTBOX}"
+        abi: SphereOutbox
+        event: WithdrawalRequested
+        where:
+          sender: { var: account.address }
+          token: "${SPHERES_BENCH_TOKEN}"
+          to: "${SPHERES_BENCH_RECIPIENT}"
+          amount: ${SPHERES_BENCH_WITHDRAWAL_AMOUNT}
+          memo: { var: offramp_action_id }
+          gasLimit: 0
+          data: "0x"
+          revealTo: "0x"
+        max_block_range: 1000
+      timeout: 45s
+      save: offramp_result
+
+    # The sequencer finalizes a withdrawal batch in the Sphere block holding its requests,
+    # so the first BatchFinalized from that block carries this withdrawal's batch index.
+    - id: offramp_batch
+      depends_on: [offramp_result]
+      wait_log:
+        chain: sphere
+        from_block: { var: offramp_result.block_number }
+        address: "${SPHERES_BENCH_OUTBOX}"
+        abi: SphereOutbox
+        event: BatchFinalized
+        max_block_range: 1000
+      save: offramp_batch
+
+    # submitBatch settles each Sphere batch on L1 under the same index, after certification.
+    - id: offramp_settled
+      depends_on: [l1_before_offramp, offramp_result, offramp_batch]
+      wait_log:
+        chain: l1
+        from_block: { var: l1_before_offramp.block_number }
+        address: "${L1_PORTAL_ADDRESS}"
+        abi: SpherePortal
+        event: BatchSubmitted
+        where:
+          withdrawalBatchIndex: { var: offramp_batch.args.withdrawalBatchIndex }
+        max_block_range: 1000
+      save: offramp_settled
+
+    - id: offramp_processed
+      depends_on: [l1_before_offramp, offramp, offramp_result, offramp_settled]
+      wait_log:
+        chain: l1
+        from_block: { var: l1_before_offramp.block_number }
+        address: "${L1_PORTAL_ADDRESS}"
+        abi: SpherePortal
+        event: WithdrawalProcessed
+        where:
+          to: "${SPHERES_BENCH_RECIPIENT}"
+          senderTag:
+            keccak256_packed:
+              types: [address, bytes32, uint64]
+              values:
+                - { var: account.address }
+                - { var: offramp.tx_hash }
+                - { var: offramp_result.args.fallbackNonce }
+          token: "${SPHERES_BENCH_TOKEN}"
+          amount: ${SPHERES_BENCH_WITHDRAWAL_AMOUNT}
+          callbackSuccess: true
+        max_block_range: 1000
+      save: offramp_processed
+
+    - id: journey_complete
+      depends_on:
+        - offramp_result
+        - offramp_processed
+      checkpoint: { chain: l1 }

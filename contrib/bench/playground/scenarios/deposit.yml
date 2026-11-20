@@ -1,0 +1,64 @@
+version: 1
+
+include:
+  - ../../neobank/neobank-scenario-fragments.yml
+
+chains:
+  l1:
+    network: sphere
+    rpc_url: "${L1_RPC_URL}"
+    query_rpc_url: "${SPHERES_BENCH_L1_QUERY_RPC_URL}"
+    observation:
+      mode: auto
+      websocket_url: "${L1_WS_RPC_URL}"
+      poll_interval: 50ms
+    chain_id: ${SPHERES_BENCH_EXPECTED_L1_CHAIN_ID}
+    workload: ../../neobank/l1-onramp.yml
+
+  sphere:
+    network: sphere
+    rpc_url: "${SPHERE_REDACTED_RPC_URL}"
+    query_rpc_url: "${SPHERE_RPC_URL}"
+    observation:
+      mode: auto
+      websocket_url: "${SPHERE_WS_RPC_URL}"
+      poll_interval: 50ms
+    request_auth:
+      sender_header:
+        name: X-Authorization-Token
+        map: "${SPHERES_BENCH_SPHERE_AUTH_MAP}"
+        reload_interval: 1s
+    chain_id: ${SPHERES_BENCH_EXPECTED_SPHERE_CHAIN_ID}
+    workload: ../../neobank/sphere-flow.yml
+
+scenario:
+  name: deposit
+  execution: dag
+  timeout: 10m
+
+  bindings:
+    account:
+      account: { pool: users, select: lease }
+    onramp_action_id:
+      bytes32: { random_bytes: 32 }
+
+  steps:
+    - id: approval
+      submit:
+        chain: l1
+        template: approve_portal
+        with:
+          from: { var: account.ref }
+        await: receipt
+      save: approval
+
+    - use: encrypted-sphere-entry
+      as: onramp
+      depends_on: [approval]
+      with:
+        sender: { var: account.ref }
+        sender_address: { var: account.address }
+        recipient: "${SPHERES_BENCH_RECIPIENT}"
+        token: "${SPHERES_BENCH_TOKEN}"
+        amount: ${SPHERES_BENCH_DEPOSIT_AMOUNT}
+        memo: { var: onramp_action_id }

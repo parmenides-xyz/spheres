@@ -1,0 +1,83 @@
+version: 1
+
+include:
+  - ./neobank-scenario-fragments.yml
+
+chains:
+  l1:
+    network: tempo
+    rpc_url: "${L1_RPC_URL}"
+    query_rpc_url: "${SPHERES_BENCH_L1_QUERY_RPC_URL}"
+    observation:
+      mode: auto
+      websocket_url: "${L1_WS_RPC_URL}"
+      poll_interval: 50ms
+    chain_id: ${SPHERES_BENCH_EXPECTED_L1_CHAIN_ID}
+    workload: ./l1-onramp.yml
+
+  sphere:
+    network: tempo
+    rpc_url: "${SPHERE_REDACTED_RPC_URL}"
+    query_rpc_url: "${SPHERE_RPC_URL}"
+    observation:
+      mode: auto
+      websocket_url: "${SPHERE_WS_RPC_URL}"
+      poll_interval: 50ms
+    request_auth:
+      sender_header:
+        name: X-Authorization-Token
+        map: "${SPHERES_BENCH_SPHERE_AUTH_MAP}"
+        reload_interval: 1s
+    chain_id: ${SPHERES_BENCH_EXPECTED_SPHERE_CHAIN_ID}
+    workload: ./sphere-flow.yml
+
+scenario:
+  name: neobank-swapped-redemption-position-setup
+  execution: dag
+  timeout: 10m
+
+  bindings:
+    account:
+      account: { pool: users, select: lease }
+    onramp_action_id:
+      bytes32: { random_bytes: 32 }
+    earn_deposit_action_id:
+      bytes32: { random_bytes: 32 }
+
+  steps:
+    - use: encrypted-sphere-entry
+      as: onramp
+      with:
+        sender: { var: account.ref }
+        sender_address: { var: account.address }
+        recipient: { var: account.address }
+        token: "${SPHERES_BENCH_DLUSD}"
+        fee_token: "${SPHERES_BENCH_DLUSD}"
+        amount: "${SPHERES_BENCH_SWAPPED_REDEMPTION_ONRAMP_PER_ACCOUNT}"
+        memo:
+          keccak256_packed:
+            types: [bytes32, bytes32]
+            values:
+              - "0x46f257d81b6cd4bfa30700ef27617b171ee079a29a5fd18b8c03ece2091e6994"
+              - { var: onramp_action_id }
+
+    - use: earn-deposit-and-return
+      as: position
+      depends_on: [onramp.sphere_deposit.processed]
+      with:
+        sender: { var: account.ref }
+        sender_address: { var: account.address }
+        recipient: ${SPHERES_BENCH_POSITION_RECIPIENT}
+        input_token: "${SPHERES_BENCH_DLUSD}"
+        fee_token: "${SPHERES_BENCH_DLUSD}"
+        amount: "${SPHERES_BENCH_SWAPPED_REDEMPTION_POSITION_PER_ACCOUNT}"
+        min_vault_assets: "${SPHERES_BENCH_SWAPPED_REDEMPTION_POSITION_PER_ACCOUNT}"
+        min_vault_shares: "${SPHERES_BENCH_SWAPPED_REDEMPTION_POSITION_PER_ACCOUNT}"
+        action_id:
+          keccak256_packed:
+            types: [bytes32, bytes32]
+            values:
+              - "0x891de03c045aee20772f91418b66b105a7ae61bc6439919e55d140d8b55ff731"
+              - { var: earn_deposit_action_id }
+        fallback_recipient: { var: account.address }
+        refund_recipient: { var: account.address }

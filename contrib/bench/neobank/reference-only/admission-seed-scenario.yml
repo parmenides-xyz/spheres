@@ -1,0 +1,50 @@
+version: 1
+
+include:
+  - ./neobank-scenario-fragments.yml
+
+chains:
+  l1:
+    network: tempo
+    rpc_url: "${L1_RPC_URL}"
+    query_rpc_url: "${SPHERES_BENCH_L1_QUERY_RPC_URL}"
+    observation:
+      mode: auto
+      websocket_url: "${L1_WS_RPC_URL}"
+      poll_interval: 50ms
+    chain_id: ${SPHERES_BENCH_EXPECTED_L1_CHAIN_ID}
+    workload: ./l1-onramp.yml
+
+  sphere:
+    network: tempo
+    rpc_url: "${SPHERE_RPC_URL}"
+    query_rpc_url: "${SPHERE_RPC_URL}"
+    observation:
+      mode: auto
+      websocket_url: "${SPHERE_WS_RPC_URL}"
+      poll_interval: 50ms
+    chain_id: ${SPHERES_BENCH_EXPECTED_SPHERE_CHAIN_ID}
+    workload: ./sphere-flow.yml
+
+scenario:
+  name: neobank-admission-seed
+  execution: dag
+  timeout: 2m
+
+  bindings:
+    account:
+      account: { pool: users, select: lease }
+    action_id:
+      bytes32: { random_bytes: 32 }
+
+  steps:
+    - use: encrypted-sphere-entry
+      as: seed
+      with:
+        sender: { var: account.ref }
+        sender_address: { var: account.address }
+        recipient: { var: account.address }
+        token: "${SPHERES_BENCH_TOKEN}"
+        fee_token: "${SPHERES_BENCH_TOKEN}"
+        amount: "${SPHERES_BENCH_ADMISSION_SEED_AMOUNT}"
+        memo: { var: action_id }

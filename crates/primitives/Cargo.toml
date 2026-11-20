@@ -1,0 +1,27 @@
+[package]
+name = "sphere-primitives"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[dependencies]
+alloy-network = { version = "2.0.4", optional = true }
+alloy-rpc-types-eth = { workspace = true, optional = true }
+reth-rpc-traits = { version = "0.3.1", optional = true }
+alloy-consensus = { workspace = true, features = ["k256"] }
+alloy-eips.workspace = true
+alloy-sol-types.workspace = true
+reth-codecs = { version = "0.3.1", default-features = false, features = ["alloy"], optional = true }
+reth-primitives-traits = { workspace = true, optional = true }
+sphere-contracts = { path = "../contracts" }
+alloy-primitives = { version = "1.5.6", default-features = false }
+thiserror = { version = "2", default-features = false }
+alloy-rlp = { version = "0.3.13", default-features = false, optional = true }
+serde = { version = "1.0", default-features = false, optional = true }
+
+[features]
+rpc = ["dep:alloy-network", "dep:alloy-rpc-types-eth", "dep:reth-rpc-traits", "reth"]
+reth = ["dep:reth-codecs", "dep:reth-primitives-traits", "dep:alloy-rlp", "serde"]
+default = ["std", "serde"]
+std = ["alloy-primitives/std", "thiserror/std"]
+serde = ["alloy-consensus/serde", "dep:alloy-rlp", "dep:serde", "alloy-primitives/serde"]

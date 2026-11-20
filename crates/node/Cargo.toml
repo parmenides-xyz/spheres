@@ -1,0 +1,83 @@
+[package]
+name = "sphere-node"
+description = "Arc Sphere node assembly"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+serde_json.workspace = true
+minicbor = "2.3"
+minicbor-serde = { version = "0.7", features = ["alloc"] }
+serde.workspace = true
+alloy-rlp.workspace = true
+metrics.workspace = true
+reth-chain-state = { git = "https://github.com/paradigmxyz/reth", tag = "v2.2.0" }
+reth-tasks = { git = "https://github.com/paradigmxyz/reth", tag = "v2.2.0" }
+reth-node-api = { git = "https://github.com/paradigmxyz/reth", tag = "v2.2.0" }
+reth-consensus-common = { git = "https://github.com/paradigmxyz/reth", tag = "v2.2.0" }
+reth-rpc-eth-types = { git = "https://github.com/paradigmxyz/reth", tag = "v2.2.0" }
+reth-rpc-builder = { git = "https://github.com/paradigmxyz/reth", tag = "v2.2.0" }
+reth-rpc-eth-api = { git = "https://github.com/paradigmxyz/reth", tag = "v2.2.0" }
+reth-rpc = { git = "https://github.com/paradigmxyz/reth", tag = "v2.2.0" }
+reth-provider.workspace = true
+futures.workspace = true
+sphere-rpc = { path = "../rpc" }
+alloy-rpc-types-eth.workspace = true
+alloy-genesis.workspace = true
+sphere-precompiles = { path = "../precompiles" }
+arc-execution-txpool.workspace = true
+reth-transaction-pool = { git = "https://github.com/paradigmxyz/reth", tag = "v2.2.0" }
+reth-evm.workspace = true
+alloy-eips.workspace = true
+alloy-network = { version = "2.0.4", default-features = false }
+alloy-provider = { version = "2.0.4", features = ["ws"] }
+alloy-signer-local.workspace = true
+sphere-prover = { path = "../prover" }
+reth-storage-api = { git = "https://github.com/paradigmxyz/reth", tag = "v2.2.0" }
+arc-execution-config.workspace = true
+sphere-payload = { path = "../payload" }
+sphere-l1 = { path = "../l1" }
+sphere-sequencer = { path = "../sequencer" }
+alloy-rpc-types-engine = { version = "2.0.4", default-features = false }
+reth-payload-builder = { git = "https://github.com/paradigmxyz/reth", tag = "v2.2.0" }
+reth-payload-primitives = { git = "https://github.com/paradigmxyz/reth", tag = "v2.2.0" }
+tracing.workspace = true
+tokio.workspace = true
+alloy-consensus.workspace = true
+alloy-evm.workspace = true
+alloy-sol-types.workspace = true
+reth-chainspec.workspace = true
+reth-consensus = { git = "https://github.com/paradigmxyz/reth", tag = "v2.2.0", default-features = false }
+reth-primitives-traits.workspace = true
+sphere-primitives = { path = "../primitives", features = ["reth"] }
+sphere-contracts = { path = "../contracts" }
+arc-execution-validation.workspace = true
+sphere-evm = { path = "../evm" }
+sphere-chainspec = { path = "../chainspec" }
+reth-ethereum-primitives.workspace = true
+reth-node-builder = { git = "https://github.com/paradigmxyz/reth", tag = "v2.2.0", default-features = false }
+sphere-p2p.workspace = true
+tokio-util = { workspace = true, features = ["rt"] }
+eyre.workspace = true
+reth-rpc-api.workspace = true
+jsonrpsee.workspace = true
+reth-node-core.workspace = true
+alloy-primitives.workspace = true
+
+[build-dependencies]
+vergen.workspace = true
+vergen-git2.workspace = true
+
+[dev-dependencies]
+alloy-signer.workspace = true
+alloy-rpc-types-eth.workspace = true
+const-hex.workspace = true
+reth-provider = { git = "https://github.com/paradigmxyz/reth", tag = "v2.2.0", features = ["test-utils"] }
+commonware-cryptography.workspace = true
+

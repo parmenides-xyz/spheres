@@ -1,0 +1,85 @@
+# Based on Reth v2.2.0 (88505c7), with upstream recovery fix a99dd1ec (#26474).
+[package]
+name = "reth-exex"
+version = "2.2.0"
+edition = "2024"
+rust-version = "1.93"
+license = "MIT OR Apache-2.0"
+homepage = "https://paradigmxyz.github.io/reth"
+repository = "https://github.com/paradigmxyz/reth"
+description = "Execution extensions for Reth"
+
+[lints]
+workspace = true
+
+[dependencies]
+## reth
+reth-chain-state = { git = "https://github.com/paradigmxyz/reth", tag = "v2.2.0" }
+reth-chainspec = { git = "https://github.com/paradigmxyz/reth", tag = "v2.2.0", default-features = false }
+reth-config = { git = "https://github.com/paradigmxyz/reth", tag = "v2.2.0", default-features = false }
+reth-evm = { git = "https://github.com/paradigmxyz/reth", tag = "v2.2.0", default-features = false }
+reth-exex-types = { git = "https://github.com/paradigmxyz/reth", tag = "v2.2.0", features = ["serde", "serde-bincode-compat"] }
+reth-fs-util = { git = "https://github.com/paradigmxyz/reth", tag = "v2.2.0" }
+reth-metrics = { git = "https://github.com/paradigmxyz/reth", tag = "v2.2.0" }
+reth-node-api = { git = "https://github.com/paradigmxyz/reth", tag = "v2.2.0" }
+reth-node-core = { git = "https://github.com/paradigmxyz/reth", tag = "v2.2.0" }
+reth-primitives-traits = { version = "0.3.1", default-features = false }
+reth-ethereum-primitives = { git = "https://github.com/paradigmxyz/reth", tag = "v2.2.0", default-features = false }
+reth-provider = { git = "https://github.com/paradigmxyz/reth", tag = "v2.2.0" }
+reth-prune-types = { git = "https://github.com/paradigmxyz/reth", tag = "v2.2.0", default-features = false }
+reth-revm = { git = "https://github.com/paradigmxyz/reth", tag = "v2.2.0", default-features = false }
+reth-stages-api = { git = "https://github.com/paradigmxyz/reth", tag = "v2.2.0" }
+reth-tasks = { git = "https://github.com/paradigmxyz/reth", tag = "v2.2.0" }
+reth-tracing = { git = "https://github.com/paradigmxyz/reth", tag = "v2.2.0", default-features = false }
+reth-payload-builder = { git = "https://github.com/paradigmxyz/reth", tag = "v2.2.0" }
+
+# alloy
+alloy-consensus = { version = "2.0.4", default-features = false }
+alloy-primitives = { version = "1.5.6", default-features = false, features = ["map-foldhash"] }
+alloy-eips = { version = "2.0.4", default-features = false }
+
+## async
+futures = "0.3"
+tokio-util = { version = "0.7.4", features = ["codec"] }
+tokio = { version = "1.51.1", default-features = false }
+
+## misc
+eyre = "0.6"
+itertools = { version = "0.14", default-features = false, features = ["use_std"] }
+metrics = "0.24.0"
+parking_lot = "0.12"
+rmp-serde = "1.3"
+thiserror = { version = "2.0.0", default-features = false }
+tracing = { version = "0.1.0", default-features = false, features = ["attributes"] }
+
+[dev-dependencies]
+reth-db-common = { git = "https://github.com/paradigmxyz/reth", tag = "v2.2.0" }
+reth-evm-ethereum = { git = "https://github.com/paradigmxyz/reth", tag = "v2.2.0", default-features = false }
+reth-primitives-traits = { version = "0.3.1", default-features = false, features = ["test-utils"] }
+reth-provider = { git = "https://github.com/paradigmxyz/reth", tag = "v2.2.0", features = ["test-utils"] }
+reth-testing-utils = { git = "https://github.com/paradigmxyz/reth", tag = "v2.2.0" }
+reth-trie-common = { git = "https://github.com/paradigmxyz/reth", tag = "v2.2.0", default-features = false, features = ["serde-bincode-compat"] }
+
+alloy-genesis = { version = "2.0.4", default-features = false }
+
+rand = "0.9"
+secp256k1 = { version = "0.30", default-features = false, features = ["global-context", "recovery"] }
+tempfile = "3.20"
+
+[features]
+serde = [
+    "reth-exex-types/serde",
+    "reth-revm/serde",
+    "alloy-consensus/serde",
+    "alloy-eips/serde",
+    "alloy-primitives/serde",
+    "parking_lot/serde",
+    "rand/serde",
+    "secp256k1/serde",
+    "reth-primitives-traits/serde",
+    "reth-trie-common/serde",
+    "reth-prune-types/serde",
+    "reth-config/serde",
+    "reth-ethereum-primitives/serde",
+    "reth-chain-state/serde",
+]

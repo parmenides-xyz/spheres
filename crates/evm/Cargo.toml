@@ -1,0 +1,37 @@
+[package]
+name = "sphere-evm"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[dependencies]
+arc-precompiles.workspace = true
+thiserror.workspace = true
+arc-evm = { package = "sphere-arc-evm", path = "../../third_party/arc-evm" }
+sphere-chainspec = { path = "../chainspec" }
+reth-ethereum = { git = "https://github.com/paradigmxyz/reth", tag = "v2.2.0", default-features = false, features = ["evm"] }
+alloy-evm = { workspace = true, features = ["rpc"] }
+alloy-primitives.workspace = true
+sphere-primitives = { path = "../primitives", features = ["reth"] }
+alloy-eips.workspace = true
+alloy-sol-types.workspace = true
+alloy-rlp.workspace = true
+sphere-contracts = { path = "../contracts" }
+reth-storage-errors = { git = "https://github.com/paradigmxyz/reth", tag = "v2.2.0" }
+sphere-precompiles = { path = "../precompiles" }
+revm = { version = "38.0.0", default-features = false }
+
+alloy-consensus.workspace = true
+alloy-rpc-types-eth = { version = "2.0.4", default-features = false }
+alloy-rpc-types-engine = { version = "2.0.4", default-features = false }
+reth-evm.workspace = true
+reth-primitives-traits.workspace = true
+tracing.workspace = true
+arc-execution-config.workspace = true
+
+[dev-dependencies]
+alloy-genesis.workspace = true
+serde_json.workspace = true
+alloy-signer = { version = "2.0.4", default-features = false }
+alloy-signer-local = { version = "2.0.4", default-features = false }
+sphere-precompiles = { path = "../precompiles", features = ["test-utils"] }

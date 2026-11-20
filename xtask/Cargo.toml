@@ -1,0 +1,42 @@
+[package]
+name = "arc-xtask"
+
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+futures.workspace = true
+toml.workspace = true
+sphere-p2p.workspace = true
+sphere-rpc = { path = "../crates/rpc" }
+alloy-network.workspace = true
+alloy-primitives.workspace = true
+alloy-provider.workspace = true
+alloy-rpc-types-eth.workspace = true
+alloy-sol-types.workspace = true
+arc-precompiles.workspace = true
+sphere-contracts = { path = "../crates/contracts" }
+sphere-precompiles = { path = "../crates/precompiles" }
+clap = { version = "4.5.45", features = ["derive", "env"] }
+commonware-codec.workspace = true
+commonware-cryptography.workspace = true
+commonware-math.workspace = true
+const-hex.workspace = true
+eyre.workspace = true
+rand = "0.10.2"
+serde = { workspace = true, features = ["derive"] }
+serde_json.workspace = true
+tokio.workspace = true
+rustls = { version = "0.23", features = ["aws-lc-rs"] }
+alloy-signer-local.workspace = true
+serde_yaml.workspace = true
+zeroize.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true

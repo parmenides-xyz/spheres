@@ -1,0 +1,1 @@
+These upstream benchmark examples require fixtures or transaction types outside the Arc USDC payment workload. The Arc runner supports the two scenarios in the parent directory, full-journey and encrypted-deposit.

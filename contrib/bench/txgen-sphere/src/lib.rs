@@ -1,0 +1,292 @@
+pub mod auth_token_map;
+mod sphere;
+pub mod sphere_auth;
+mod template;
+
+use alloy_network::{Ethereum, TransactionBuilder};
+use alloy_primitives::{Address, Bytes, TxKind, U256};
+use alloy_rpc_types_eth::TransactionRequest;
+use eyre::Result;
+use txgen_cli::{NetworkAdapter, ScenarioActionContext, TxRequest};
+use txgen_core::{BuildContext, CallDef, GenValue};
+
+pub use template::{EthTxType, EthereumTemplate};
+
+/// Ethereum network adapter for transaction generation.
+///
+/// Supports legacy, EIP-2930, and EIP-1559 transaction types.
+#[derive(Default)]
+pub struct SphereAdapter;
+
+impl NetworkAdapter for SphereAdapter {
+    type Template = EthereumTemplate;
+    type Network = Ethereum;
+    type SignContext = ();
+
+    fn network_name() -> &'static str {
+        "sphere"
+    }
+
+    fn scenario_actions() -> &'static [&'static str] {
+        sphere::SCENARIO_ACTIONS
+    }
+
+    async fn invoke_scenario_action(
+        &self,
+        action: &str,
+        arguments: &serde_yaml::Value,
+        context: ScenarioActionContext<'_>,
+    ) -> Result<serde_yaml::Value> {
+        sphere::invoke(action, arguments, context).await
+    }
+
+    fn build_request(
+        &self,
+        template: Self::Template,
+        ctx: &mut BuildContext<'_>,
+    ) -> Result<TxRequest<TransactionRequest>> {
+        let selected = ctx.select_signer(&template.from)?;
+        let key: [u8; 20] = selected.address.0 .0;
+        let nonce = ctx.next_nonce(key);
+
+        Ok(TxRequest {
+            request: build_transaction_request(&template, nonce, ctx)?,
+            signer_pool: selected.pool,
+            signer_index: selected.index,
+            key,
+            sign_context: (),
+            late_sign: None,
+        })
+    }
+}
+
+/// Build an unsigned legacy, EIP-2930 or EIP-1559 request from `template`.
+pub fn build_transaction_request(
+    template: &EthereumTemplate,
+    nonce: u64,
+    ctx: &mut BuildContext<'_>,
+) -> Result<TransactionRequest> {
+    let (to, value, input) = resolve_call_data(
+        template.call.as_ref(),
+        &template.to,
+        &template.value,
+        template.input.as_ref(),
+        ctx,
+    )?;
+
+    let mut req = TransactionRequest::default();
+    req.set_chain_id(ctx.chain_id);
+    req.set_nonce(nonce);
+    req.set_gas_limit(template.gas_limit);
+
+    req.set_kind(to);
+    req.set_value(value);
+    if !input.is_empty() {
+        req.set_input(input);
+    }
+
+    match template.tx_type {
+        EthTxType::Legacy => {
+            req.set_gas_price(template.gas_price.unwrap_or(ctx.gas.max_fee_per_gas));
+        }
+        EthTxType::Eip2930 => {
+            req.set_gas_price(template.gas_price.unwrap_or(ctx.gas.max_fee_per_gas));
+            req.set_access_list(Default::default());
+        }
+        EthTxType::Eip1559 => {
+            req.set_max_fee_per_gas(template.max_fee_per_gas.unwrap_or(ctx.gas.max_fee_per_gas));
+            req.set_max_priority_fee_per_gas(
+                template.max_priority_fee_per_gas.unwrap_or(ctx.gas.max_priority_fee_per_gas),
+            );
+        }
+    }
+    Ok(req)
+}
+
+/// Resolve `call`, or the raw `to`/`value`/`input` fields when it is unset.
+pub fn resolve_call_data(
+    call: Option<&CallDef>,
+    to: &Option<GenValue<Address>>,
+    value: &GenValue<U256>,
+    input: Option<&GenValue<Bytes>>,
+    ctx: &mut BuildContext<'_>,
+) -> Result<(TxKind, U256, Bytes)> {
+    if let Some(call) = call {
+        let encoded = ctx.encode_call(call)?;
+        Ok((TxKind::Call(encoded.to), encoded.value, encoded.input))
+    } else {
+        let to = ctx.resolve_to(to)?;
+        let value = ctx.resolve_value(value)?;
+        let input = input.map(|input| ctx.resolve_value(input)).transpose()?.unwrap_or_default();
+        Ok((to, value, input))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use rand::{rngs::StdRng, SeedableRng};
+    use std::{
+        collections::HashMap,
+        sync::{Arc, Mutex},
+        time::Duration,
+    };
+    use txgen_cli::{materialize_setup, materialize_setup_online};
+    use txgen_core::{
+        AccountManager, AccountPoolDef, AccountRef, AddressPoolManager, ArtifactManager, GasConfig,
+        GenValue, NonceTracker, SelectMode, TxPhase, WorkloadSpec,
+    };
+
+    const TEST_MNEMONIC: &str = "test test test test test test test test test test test junk";
+
+    #[test]
+    fn test_build_eip1559_transfer() {
+        let mut accounts_map = HashMap::new();
+        accounts_map.insert(
+            "users".to_string(),
+            AccountPoolDef {
+                mnemonic: TEST_MNEMONIC.to_string(),
+                index: None,
+                range: Some([0, 10]),
+            },
+        );
+        let accounts = AccountManager::from_spec(&accounts_map).unwrap();
+        let artifacts = ArtifactManager::empty();
+        let gas = GasConfig::default();
+        let mut nonces = NonceTracker::new();
+        let mut rng = StdRng::seed_from_u64(42);
+
+        let mut ctx = BuildContext::new(1, &gas, &accounts, &artifacts, &mut nonces, &mut rng);
+
+        let template = EthereumTemplate {
+            tx_type: EthTxType::Eip1559,
+            from: AccountRef { pool: "users".to_string(), select: SelectMode::Index(0) },
+            gas_limit: 21000,
+            value: GenValue::Literal(U256::from(1000)),
+            to: Some(GenValue::Literal(alloy_primitives::Address::ZERO)),
+            input: None,
+            call: None,
+            gas_price: None,
+            max_fee_per_gas: Some(1_000_000_000),
+            max_priority_fee_per_gas: Some(1_000_000_000),
+        };
+
+        let adapter = SphereAdapter;
+        let tx_req = adapter.build_request(template, &mut ctx).unwrap();
+
+        let signer =
+            ctx.accounts.get_by_index(&tx_req.signer_pool, tx_req.signer_index).unwrap().clone();
+        let expected_sender = signer.address();
+        let generated = txgen_cli::sign_standard_request::<Ethereum>(
+            "transfer".to_string(),
+            TxPhase::Workload,
+            tx_req.request,
+            signer,
+            tx_req.key,
+            Vec::new(),
+        )
+        .unwrap();
+
+        // Verify we got a non-empty transaction
+        assert!(!generated.raw.is_empty());
+        // EIP-1559 transactions start with 0x02
+        assert_eq!(generated.raw[0], 0x02);
+        assert_eq!(generated.sender, Some(expected_sender));
+    }
+
+    #[tokio::test]
+    async fn online_setup_matches_existing_generate_materialization() {
+        let spec: WorkloadSpec = serde_yaml::from_str(&format!(
+            r#"
+chain_id: 1
+accounts:
+  users:
+    mnemonic: "{TEST_MNEMONIC}"
+    range: [0, 1]
+setup:
+  steps:
+    - id: first
+      tx:
+        type: eip1559
+        from: {{ pool: users, select: {{ index: 0 }} }}
+        to: "0x0000000000000000000000000000000000000001"
+        value: 1
+        gas_limit: 21000
+    - id: second
+      tx:
+        type: eip1559
+        from: {{ pool: users, select: {{ index: 0 }} }}
+        to: {{ var: setup.first.sender }}
+        value: 2
+        gas_limit: 21000
+"#
+        ))
+        .unwrap();
+        let accounts = AccountManager::from_spec(&spec.accounts).unwrap();
+        let address_pools = AddressPoolManager::empty();
+        let artifacts = ArtifactManager::empty();
+
+        let generated = {
+            let mut nonces = NonceTracker::new();
+            let mut rng = StdRng::seed_from_u64(99);
+            let mut context = BuildContext::new_with_address_pools(
+                spec.chain_id,
+                &spec.gas,
+                &accounts,
+                &address_pools,
+                &artifacts,
+                &mut nonces,
+                &mut rng,
+            );
+            materialize_setup(&mut SphereAdapter, &spec, &mut context).unwrap()
+        };
+
+        let observed = Arc::new(Mutex::new(Vec::new()));
+        let online = {
+            let mut nonces = NonceTracker::new();
+            let mut rng = StdRng::seed_from_u64(99);
+            let mut context = BuildContext::new_with_address_pools(
+                spec.chain_id,
+                &spec.gas,
+                &accounts,
+                &address_pools,
+                &artifacts,
+                &mut nonces,
+                &mut rng,
+            );
+            materialize_setup_online(
+                &mut SphereAdapter,
+                &spec,
+                &mut context,
+                Duration::from_secs(1),
+                {
+                    let observed = observed.clone();
+                    move |transaction| {
+                        let observed = observed.clone();
+                        async move {
+                            observed
+                                .lock()
+                                .unwrap()
+                                .push(transaction.id.clone().expect("setup transaction id"));
+                            Ok(transaction)
+                        }
+                    }
+                },
+            )
+            .await
+            .unwrap()
+        };
+
+        assert_eq!(
+            *observed.lock().unwrap(),
+            vec!["setup.first".to_string(), "setup.second".to_string()]
+        );
+        assert_eq!(generated.transactions.len(), online.transactions.len());
+        for (generated, online) in generated.transactions.iter().zip(&online.transactions) {
+            assert_eq!(generated.id, online.id);
+            assert_eq!(generated.raw, online.raw);
+            assert_eq!(generated.submission_keys, online.submission_keys);
+            assert_eq!(generated.inclusion_keys, online.inclusion_keys);
+        }
+    }
+}

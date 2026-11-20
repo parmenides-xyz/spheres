@@ -1,0 +1,62 @@
+chain_id: ${SPHERES_BENCH_EXPECTED_SPHERE_CHAIN_ID}
+
+gas:
+  max_fee_per_gas: ${SPHERES_BENCH_SPHERE_MAX_FEE_PER_GAS}
+  max_priority_fee_per_gas: ${SPHERES_BENCH_SPHERE_MAX_PRIORITY_FEE_PER_GAS}
+
+accounts:
+  users:
+    mnemonic: "${SPHERES_BENCH_MNEMONIC}"
+    range: [${SPHERES_BENCH_ACCOUNT_START}, ${SPHERES_BENCH_ACCOUNT_END}]
+
+artifacts:
+  ERC20: abis/erc20.json
+  SphereOutbox: abis/sphere-outbox.json
+  SphereInbox: abis/neobank-sphere-inbox.json
+
+setup: { steps: [] }
+
+templates:
+  approve_base_token:
+    type: eip1559
+    from: { pool: users, select: random }
+    gas_limit: 500000
+    call:
+      to: "${SPHERES_BENCH_TOKEN}"
+      abi: ERC20
+      function: "approve(address,uint256)"
+      args:
+        - "${SPHERES_BENCH_OUTBOX}"
+        - "115792089237316195423570985008687907853269984665640564039457584007913129639935"
+
+  offramp:
+    type: eip1559
+    from: { pool: users, select: random }
+    gas_limit: 10000000
+    call:
+      to: "${SPHERES_BENCH_OUTBOX}"
+      abi: SphereOutbox
+      function: "requestWithdrawal(address,address,uint128,bytes32,uint64,address,bytes,bytes)"
+      args:
+        - "${SPHERES_BENCH_TOKEN}"
+        - { var: recipient.address }
+        - ${SPHERES_BENCH_WITHDRAWAL_AMOUNT}
+        - { var: offramp_action_id }
+        - 0
+        - { var: account.address }
+        - "0x"
+        - "0x"
+
+  payment:
+    type: eip1559
+    from: { pool: users, select: random }
+    gas_limit: 500000
+    call:
+      to: "${SPHERES_BENCH_TOKEN}"
+      abi: ERC20
+      function: "transfer(address,uint256)"
+      args:
+        - { var: recipient.address }
+        - ${SPHERES_BENCH_ACTIVITY_AMOUNT}
+
+mix: []

@@ -1,0 +1,4 @@
+chain_id: ${SPHERES_BENCH_EXPECTED_SPHERE_CHAIN_ID}
+
+artifacts:
+  SphereInbox: abis/neobank-sphere-inbox.json

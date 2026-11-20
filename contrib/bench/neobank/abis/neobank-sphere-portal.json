@@ -1,0 +1,342 @@
+[
+  {
+    "type": "function",
+    "name": "deposit",
+    "inputs": [
+      {
+        "name": "token",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "amount",
+        "type": "uint128",
+        "internalType": "uint128"
+      },
+      {
+        "name": "keyIndex",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "encrypted",
+        "type": "tuple",
+        "internalType": "struct DepositPayload",
+        "components": [
+          {
+            "name": "ephemeralPubkeyX",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "ephemeralPubkeyYParity",
+            "type": "uint8",
+            "internalType": "uint8"
+          },
+          {
+            "name": "ciphertext",
+            "type": "bytes",
+            "internalType": "bytes"
+          },
+          {
+            "name": "nonce",
+            "type": "bytes12",
+            "internalType": "bytes12"
+          },
+          {
+            "name": "tag",
+            "type": "bytes16",
+            "internalType": "bytes16"
+          }
+        ]
+      },
+      {
+        "name": "arcRefundRecipient",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "newCurrentDepositQueueHash",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "depositEncrypted",
+    "inputs": [
+      {
+        "name": "token",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "amount",
+        "type": "uint128",
+        "internalType": "uint128"
+      },
+      {
+        "name": "keyIndex",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "encrypted",
+        "type": "tuple",
+        "internalType": "struct DepositPayload",
+        "components": [
+          {
+            "name": "ephemeralPubkeyX",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "ephemeralPubkeyYParity",
+            "type": "uint8",
+            "internalType": "uint8"
+          },
+          {
+            "name": "ciphertext",
+            "type": "bytes",
+            "internalType": "bytes"
+          },
+          {
+            "name": "nonce",
+            "type": "bytes12",
+            "internalType": "bytes12"
+          },
+          {
+            "name": "tag",
+            "type": "bytes16",
+            "internalType": "bytes16"
+          }
+        ]
+      },
+      {
+        "name": "arcRefundRecipient",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "newCurrentDepositQueueHash",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "event",
+    "name": "DepositMade",
+    "inputs": [
+      {
+        "name": "newCurrentDepositQueueHash",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "sender",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "token",
+        "type": "address",
+        "indexed": false,
+        "internalType": "address"
+      },
+      {
+        "name": "netAmount",
+        "type": "uint128",
+        "indexed": false,
+        "internalType": "uint128"
+      },
+      {
+        "name": "fee",
+        "type": "uint128",
+        "indexed": false,
+        "internalType": "uint128"
+      },
+      {
+        "name": "keyIndex",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "ephemeralPubkeyX",
+        "type": "bytes32",
+        "indexed": false,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "ephemeralPubkeyYParity",
+        "type": "uint8",
+        "indexed": false,
+        "internalType": "uint8"
+      },
+      {
+        "name": "ciphertext",
+        "type": "bytes",
+        "indexed": false,
+        "internalType": "bytes"
+      },
+      {
+        "name": "nonce",
+        "type": "bytes12",
+        "indexed": false,
+        "internalType": "bytes12"
+      },
+      {
+        "name": "tag",
+        "type": "bytes16",
+        "indexed": false,
+        "internalType": "bytes16"
+      },
+      {
+        "name": "arcRefundRecipient",
+        "type": "address",
+        "indexed": false,
+        "internalType": "address"
+      },
+      {
+        "name": "depositNumber",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "WithdrawalProcessed",
+    "inputs": [
+      {
+        "name": "to",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "senderTag",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "token",
+        "type": "address",
+        "indexed": false,
+        "internalType": "address"
+      },
+      {
+        "name": "amount",
+        "type": "uint128",
+        "indexed": false,
+        "internalType": "uint128"
+      },
+      {
+        "name": "callbackSuccess",
+        "type": "bool",
+        "indexed": false,
+        "internalType": "bool"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "WithdrawalBounceBack",
+    "inputs": [
+      {
+        "name": "newCurrentDepositQueueHash",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "fallbackNonce",
+        "type": "uint64",
+        "indexed": true,
+        "internalType": "uint64"
+      },
+      {
+        "name": "token",
+        "type": "address",
+        "indexed": false,
+        "internalType": "address"
+      },
+      {
+        "name": "amount",
+        "type": "uint128",
+        "indexed": false,
+        "internalType": "uint128"
+      },
+      {
+        "name": "depositNumber",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "BatchSubmitted",
+    "inputs": [
+      {
+        "name": "withdrawalBatchIndex",
+        "type": "uint64",
+        "indexed": true,
+        "internalType": "uint64"
+      },
+      {
+        "name": "withdrawalQueueIndex",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "nextProcessedDepositQueueHash",
+        "type": "bytes32",
+        "indexed": false,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "nextBlockHash",
+        "type": "bytes32",
+        "indexed": false,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "withdrawalQueueHash",
+        "type": "bytes32",
+        "indexed": false,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "lastProcessedDepositNumber",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      },
+      {
+        "name": "lastProcessedEnabledTokenCount",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      }
+    ],
+    "anonymous": false
+  }
+]

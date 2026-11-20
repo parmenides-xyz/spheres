@@ -1,0 +1,113 @@
+version: 1
+
+fragments:
+  wait-encrypted-sphere-deposit:
+    parameters:
+      from_block: value
+      deposit_hash: value
+      sender: value
+      recipient: value
+      token: value
+      amount: value
+      memo: value
+    outputs:
+      processed: log
+    steps:
+      - id: processed
+        wait_log:
+          chain: sphere
+          from_block: { param: from_block }
+          address: "${SPHERES_BENCH_INBOX}"
+          abi: SphereInbox
+          event: DepositProcessed
+          where:
+            depositHash: { param: deposit_hash }
+            sender: { param: sender }
+            to: { param: recipient }
+            token: { param: token }
+            amount: { param: amount }
+            memo: { param: memo }
+          max_block_range: 1000
+        save: processed
+
+  encrypted-sphere-entry:
+    parameters:
+      sender: account_ref
+      sender_address: address
+      recipient: address
+      token: address
+      amount: u256
+      memo: value
+    outputs:
+      submission: submit
+      enqueued: log
+      sphere_deposit.processed: log
+    steps:
+      - id: sphere_before
+        checkpoint: { chain: sphere }
+        save: sphere_before
+
+      - id: encryption
+        invoke:
+          chain: l1
+          action: prepare_encrypted_deposit
+          with:
+            sender: { param: sender_address }
+            recipient: { param: recipient }
+            sphereId: ${SPHERES_BENCH_EXPECTED_SPHERE_ID}
+            portalAddress: "${L1_PORTAL_ADDRESS}"
+            memo: { param: memo }
+        save: encryption
+
+      - id: submission
+        depends_on: [encryption]
+        submit:
+          chain: l1
+          template: encrypted_onramp
+          with:
+            from: { param: sender }
+            call:
+              args:
+                - { param: token }
+                - { param: amount }
+                - { var: encryption.keyIndex }
+                - { var: encryption.encrypted }
+                - { param: sender_address }
+        save: submission
+
+      - id: enqueued
+        depends_on: [submission]
+        wait_log:
+          chain: l1
+          transaction_hash: { var: submission.tx_hash }
+          sender: { var: submission.sender }
+          events:
+            transfer:
+              address: { param: token }
+              abi: ERC20
+              event: Transfer
+              where:
+                from: { param: sender_address }
+                to: "${L1_PORTAL_ADDRESS}"
+                value: { param: amount }
+            deposit:
+              address: "${L1_PORTAL_ADDRESS}"
+              abi: SpherePortal
+              event: DepositMade
+              where:
+                sender: { param: sender_address }
+                token: { param: token }
+        timeout: 45s
+        save: enqueued
+
+      - use: wait-encrypted-sphere-deposit
+        as: sphere_deposit
+        depends_on: [sphere_before, enqueued]
+        with:
+          from_block: { var: sphere_before.block_number }
+          deposit_hash: { var: enqueued.events.deposit.args.newCurrentDepositQueueHash }
+          sender: { param: sender_address }
+          recipient: { param: recipient }
+          token: { param: token }
+          amount: { var: enqueued.events.deposit.args.netAmount }
+          memo: { param: memo }

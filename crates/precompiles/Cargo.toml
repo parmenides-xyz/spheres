@@ -1,0 +1,28 @@
+[package]
+name = "sphere-precompiles"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[dependencies]
+sphere-contracts = { path = "../contracts", default-features = false }
+alloy-primitives.workspace = true
+thiserror.workspace = true
+spin = { version = "0.10.1", default-features = false, features = ["spin_mutex"] }
+# crypto
+aes-gcm = { version = "0.10.3", default-features = false, features = ["aes", "alloc"] }
+k256 = { version = "0.13.4", default-features = false, features = ["arithmetic", "ecdh"] }
+sha2 = { version = "0.10.9", default-features = false }
+rand = "0.8.5"
+
+[features]
+default = ["std"]
+test-utils = ["std"]
+std = [
+    "sphere-contracts/std",
+    "alloy-primitives/std",
+    "aes-gcm/std",
+    "k256/std",
+    "sha2/std",
+    "rand/std",
+]

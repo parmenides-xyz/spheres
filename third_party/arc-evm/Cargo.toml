@@ -1,0 +1,53 @@
+[package]
+name = "sphere-arc-evm"
+version = "0.0.1"
+edition = "2024"
+license = "Apache-2.0"
+rust-version = "1.93"
+publish = false
+repository = "https://github.com/circlefin/arc-node"
+
+[features]
+arbitrary = ["alloy-consensus/arbitrary", "alloy-eips/arbitrary", "alloy-primitives/arbitrary", "revm-primitives/arbitrary", "revm/arbitrary", "reth-ethereum/arbitrary"]
+integration = ["arc-precompiles/integration"]
+
+[dependencies]
+alloy-consensus = { version = "2.0.4", default-features = false, features = ["serde"] }
+alloy-eips = { version = "2.0.4", default-features = false }
+alloy-evm = { version = "0.34.0", default-features = false }
+alloy-primitives = { version = "1.5.6", default-features = false, features = ["map-foldhash", "keccak-cache-global", "asm-keccak"] }
+alloy-rpc-types-engine = { version = "2.0.4", default-features = false }
+alloy-sol-types = { version = "1.5.6", default-features = false, features = ["json"] }
+sphere-contracts = { path = "../../crates/contracts", default-features = false }
+arc-execution-config = { version = "0.0.1", git = "https://github.com/circlefin/arc-node.git", rev = "6e764023ee6515fe70573e123ed2db912a7207b4" }
+arc-precompiles = { version = "0.0.1", git = "https://github.com/circlefin/arc-node.git", rev = "6e764023ee6515fe70573e123ed2db912a7207b4" }
+reth-chainspec = { git = "https://github.com/paradigmxyz/reth", tag = "v2.2.0", default-features = false }
+reth-ethereum = { git = "https://github.com/paradigmxyz/reth", tag = "v2.2.0", features = ["node-api", "provider", "evm"] }
+reth-ethereum-primitives = { git = "https://github.com/paradigmxyz/reth", tag = "v2.2.0", default-features = false }
+reth-evm = { git = "https://github.com/paradigmxyz/reth", tag = "v2.2.0", default-features = false }
+reth-node-api = { git = "https://github.com/paradigmxyz/reth", tag = "v2.2.0" }
+reth-primitives-traits = { version = "0.3.1", default-features = false }
+revm = { version = "38.0.0", default-features = false }
+revm-context-interface = { version = "17.0.1", default-features = false }
+revm-handler = { version = "18.1.0", default-features = false }
+revm-interpreter = { version = "35.0.1", default-features = false }
+revm-primitives = { version = "23.0.0", default-features = false }
+thiserror = { version = "2.0.0", default-features = false }
+tracing = { version = "0.1.0", default-features = false }
+
+[dev-dependencies]
+alloy-genesis = { version = "2.0.4", default-features = false }
+alloy-rpc-types-trace = { version = "2.0.4", default-features = false }
+arc-execution-config = { version = "0.0.1", git = "https://github.com/circlefin/arc-node.git", rev = "6e764023ee6515fe70573e123ed2db912a7207b4", features = ["test-utils"] }
+arc-precompiles = { version = "0.0.1", git = "https://github.com/circlefin/arc-node.git", rev = "6e764023ee6515fe70573e123ed2db912a7207b4" }
+revm-inspectors = { version = "0.39.0" }
+rstest = { version = "0.24.0" }
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ["cfg(coverage_nightly)"] }
+
+[lints.clippy]
+arithmetic_side_effects = "deny"
+cast_possible_truncation = "deny"
+collapsible_if = "allow"
+unwrap_used = "deny"

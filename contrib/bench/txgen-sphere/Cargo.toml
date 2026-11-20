@@ -1,0 +1,47 @@
+[workspace]
+
+[package]
+name = "txgen-sphere"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.95.0"
+license = "MIT OR Apache-2.0"
+
+[[bin]]
+name = "txgen-sphere"
+path = "src/bin/main.rs"
+
+[dependencies]
+txgen-core = { git = "https://github.com/tempoxyz/txgen", rev = "ca437320c94baf64b05b1e31fde576e6e493479d" }
+txgen-cli = { git = "https://github.com/tempoxyz/txgen", rev = "ca437320c94baf64b05b1e31fde576e6e493479d" }
+
+clap = { version = "4", features = ["derive", "env"] }
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "signal", "time"] }
+
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+serde_yaml = "0.9"
+
+alloy-eips = "2"
+alloy-network = "2"
+alloy-primitives = { version = "1", features = ["rand", "serde"] }
+alloy-provider = { version = "2.4.2", features = ["debug-api", "engine-api", "ws"] }
+alloy-rpc-types-eth = "2"
+alloy-signer = "2"
+
+aes-gcm = "0.10"
+hkdf = "0.12"
+k256 = { version = "0.13", features = ["ecdh"] }
+sha2 = "0.10"
+
+eyre = "0.6"
+hex = "0.4"
+rand = "0.9"
+rustix = { version = "1", features = ["fs"] }
+zeroize = "1"
+
+[dev-dependencies]
+alloy-transport = "2"
+axum = { version = "0.8", default-features = false, features = ["http1", "json", "tokio"] }
+tokio = { version = "1", features = ["net"] }
+tempfile = "3"

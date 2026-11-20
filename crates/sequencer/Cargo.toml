@@ -1,0 +1,55 @@
+[package]
+name = "sphere-sequencer"
+description = "Arc Sphere sequencer settlement and withdrawal tasks"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+metrics.workspace = true
+reth-metrics.workspace = true
+alloy-consensus = { version = "2.0.4", features = ["k256"] }
+alloy-primitives.workspace = true
+alloy-rpc-client = { version = "2.0.4", features = ["ws"] }
+alloy-signer = { version = "2.0.4", default-features = false }
+alloy-signer-local.workspace = true
+alloy-sol-types = { version = "1.5.6", default-features = false }
+eyre.workspace = true
+alloy-chains = "0.2"
+alloy-network = { version = "2.0.4", default-features = false }
+alloy-provider = { version = "2.0.4", features = ["ws"] }
+alloy-transport = { version = "2.0.4", default-features = false }
+sphere-prover = { path = "../prover" }
+sphere-contracts = { path = "../contracts", features = ["rpc"] }
+
+tokio-util = {workspace = true, features = ["rt"]}
+sphere-primitives = { workspace = true, features = ["reth"] }
+alloy-contract = "2.0.4"
+sphere-p2p.workspace = true
+alloy-rlp.workspace = true
+schnellru = "0.2.4"
+alloy-eips.workspace = true
+alloy-rpc-types-eth.workspace = true
+futures.workspace = true
+parking_lot.workspace = true
+serde = { workspace = true, features = ["derive"] }
+serde_json.workspace = true
+tempfile.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+reth-chain-state = { git = "https://github.com/paradigmxyz/reth", tag = "v2.2.0" }
+reth-storage-api = { git = "https://github.com/paradigmxyz/reth", tag = "v2.2.0" }
+reth-provider.workspace = true
+reth-ethereum-primitives.workspace = true
+sphere-rpc = { path = "../rpc" }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["test-util"] }
+jsonrpsee.workspace = true
+reth-provider = { git = "https://github.com/paradigmxyz/reth", tag = "v2.2.0", features = ["test-utils"] }
+tokio-tungstenite = "0.26.2"

@@ -1,0 +1,37 @@
+[package]
+name = "sphere-spf"
+description = "Stateless proof function for Arc Spheres"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+alloy-primitives.workspace = true
+alloy-rlp.workspace = true
+reth-trie-common.workspace = true
+reth-trie-sparse.workspace = true
+thiserror = "2"
+alloy-consensus.workspace = true
+alloy-eips.workspace = true
+revm = { version = "38.0.0", default-features = false }
+sphere-precompiles = { path = "../precompiles", features = ["std"] }
+sphere-contracts = { path = "../contracts", features = ["std"] }
+sphere-primitives = { workspace = true, features = ["std"] }
+serde = { workspace = true, optional = true }
+
+[features]
+default = ["serde"]
+serde = [
+    "dep:serde",
+    "alloy-primitives/serde",
+    "sphere-contracts/serde",
+    "sphere-primitives/serde",
+]
+
+[dev-dependencies]
+arc-execution-config.workspace = true
